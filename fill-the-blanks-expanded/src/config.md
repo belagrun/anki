@@ -22,7 +22,7 @@
 
 * idle-hint-delay-ms:
     * Idle time (in milliseconds) before showing the next letter hint
-    * Acceptable values: integer (ex: 10000 for 10 seconds)
+    * Acceptable values: integer (ex: 0 for no delay)
 
 New integration is the default now:  
 https://github.com/ssricardo/anki-plugins/wiki/Fill-the-blanks-Default-Integration

@@ -33,7 +33,7 @@ DEFAULT_CONFIG = {
     ConfigKey.IGNORE_ACCENTS: False,
     ConfigKey.ASIAN_CHARS: False,
     ConfigKey.IDLE_HINT_ENABLED: True,
-    ConfigKey.IDLE_HINT_DELAY_MS: 10000,
+    ConfigKey.IDLE_HINT_DELAY_MS: 0,
 }
 
 class ConfigService:

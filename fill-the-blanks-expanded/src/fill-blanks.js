@@ -3,10 +3,13 @@ let shouldIgnoreCase = false;
 let shouldIgnoreAccents = false;
 let asianCharsEnabled = false;
 let idleHintEnabled = true;
-let idleHintDelayMs = 10000;
+let idleHintDelayMs = 0;
 const idleHintVisibleMs = 2000;
 var typedWords = [];
 const idleHintState = {};
+let ctrlHintActive = false;
+let ctrlHintListenersReady = false;
+let activeTypeAnsIndex = null;
 
 function checkFieldValue(reference, fieldIndex, event) {
     if (window.event.keyCode === 13) {
@@ -133,7 +136,7 @@ function disableIdleHint() {
 }
 
 function setIdleHintDelay(delayMs) {
-    if (typeof delayMs === 'number' && delayMs > 0) {
+    if (typeof delayMs === 'number' && delayMs >= 0) {
         idleHintDelayMs = delayMs;
     }
 }
@@ -151,16 +154,30 @@ function focusOnFirst() {
 }
 
 function setUpFillBlankListener(expected, typeAnsIndex) {
+    initCtrlHintListeners();
     const eventType = (asianCharsEnabled) ? "input" : "keyup"
     const inputEl = document.getElementById(`typeans${typeAnsIndex}`);
+    if (!idleHintState[typeAnsIndex]) {
+        idleHintState[typeAnsIndex] = { timerId: null, hideTimerId: null, expected: expected };
+    } else {
+        idleHintState[typeAnsIndex].expected = expected;
+    }
     if (inputEl && inputEl.tagName === 'SELECT') {
         inputEl.addEventListener('change',
             (evt) => checkFieldValue(expected, typeAnsIndex, evt));
     } else {
         inputEl.addEventListener(eventType,
           (evt) => checkFieldValue(expected, typeAnsIndex, evt))
-        inputEl.addEventListener('focus', () => scheduleIdleHint(typeAnsIndex, expected));
-        inputEl.addEventListener('blur', () => clearIdleHintTimer(typeAnsIndex));
+        inputEl.addEventListener('focus', () => {
+            activeTypeAnsIndex = typeAnsIndex;
+            scheduleIdleHint(typeAnsIndex, expected);
+        });
+        inputEl.addEventListener('blur', () => {
+            if (activeTypeAnsIndex === typeAnsIndex) {
+                activeTypeAnsIndex = null;
+            }
+            clearIdleHintTimer(typeAnsIndex);
+        });
     }
 
     // add extra event for Enter key
@@ -246,10 +263,14 @@ function scheduleIdleHint(fieldIndex, expected) {
     }
 
     if (!idleHintState[fieldIndex]) {
-        idleHintState[fieldIndex] = { timerId: null, hideTimerId: null };
+        idleHintState[fieldIndex] = { timerId: null, hideTimerId: null, expected: expected };
     }
 
     const state = idleHintState[fieldIndex];
+    if (!ctrlHintActive || activeTypeAnsIndex !== fieldIndex) {
+        hideIdleHint();
+        return;
+    }
     const current = (inputEl.value || "").trim();
 
     if (state.timerId) {
@@ -265,7 +286,11 @@ function scheduleIdleHint(fieldIndex, expected) {
         return;
     }
 
-    state.timerId = setTimeout(() => {
+    const runHint = () => {
+        if (!ctrlHintActive || activeTypeAnsIndex !== fieldIndex) {
+            hideIdleHint();
+            return;
+        }
         const liveValue = (inputEl.value || "").trim();
         if (liveValue.length >= expected.length) {
             hideIdleHint();
@@ -279,7 +304,13 @@ function scheduleIdleHint(fieldIndex, expected) {
         state.hideTimerId = setTimeout(() => {
             hideIdleHint();
         }, idleHintVisibleMs);
-    }, idleHintDelayMs);
+    };
+
+    if (idleHintDelayMs === 0) {
+        runHint();
+    } else {
+        state.timerId = setTimeout(runHint, idleHintDelayMs);
+    }
 }
 
 function formatIdleHint(text) {
@@ -288,6 +319,50 @@ function formatIdleHint(text) {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/\s/g, '<span class="ftb-idle-space"></span>');
+}
+
+function initCtrlHintListeners() {
+    if (ctrlHintListenersReady) {
+        return;
+    }
+    ctrlHintListenersReady = true;
+
+    document.addEventListener('keydown', (evt) => {
+        if (evt.key === 'Control' && !evt.shiftKey && !evt.altKey && !evt.metaKey) {
+            ctrlHintActive = true;
+            const activeIndex = getActiveTypeAnsIndex();
+            if (activeIndex !== null && idleHintState[activeIndex]?.expected) {
+                if (!idleHintState[activeIndex]) {
+                    idleHintState[activeIndex] = { timerId: null, hideTimerId: null, expected: "" };
+                }
+                scheduleIdleHint(activeIndex, idleHintState[activeIndex].expected);
+            }
+        } else {
+            ctrlHintActive = false;
+            hideIdleHint();
+        }
+    });
+
+    document.addEventListener('keyup', (evt) => {
+        if (evt.key === 'Control') {
+            ctrlHintActive = false;
+            hideIdleHint();
+        }
+    });
+
+    window.addEventListener('blur', () => {
+        ctrlHintActive = false;
+        hideIdleHint();
+    });
+}
+
+function getActiveTypeAnsIndex() {
+    const active = document.activeElement;
+    if (!active || !active.id) {
+        return null;
+    }
+    const match = active.id.match(/^typeans(\d+)$/);
+    return match ? parseInt(match[1], 10) : null;
 }
 
 // --------------- Reveal popup ------------------
