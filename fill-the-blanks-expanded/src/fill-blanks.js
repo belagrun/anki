@@ -141,6 +141,15 @@ function setIdleHintDelay(delayMs) {
     }
 }
 
+function enableReadingHighlight(force = false) {
+    if (window.__ftbReadingHighlightEnabled && !force) {
+        return;
+    }
+    window.__ftbReadingHighlightEnabled = true;
+    const root = document.getElementById('qa') || document.body;
+    wrapTextNodes(root);
+}
+
 // ------------------------------------
 
 function focusOnFirst() {
@@ -459,4 +468,63 @@ function applyRevealChoice(isCorrect) {
     field.data('lastValue', expected);
     updateTypedValue(ftbPopupState.index);
     hideRevealPopup();
+}
+
+function wrapTextNodes(root) {
+    if (!root) {
+        return;
+    }
+
+    const skipTags = new Set(['SCRIPT', 'STYLE', 'INPUT', 'TEXTAREA', 'SELECT']);
+    const skipClasses = new Set(['ftb-container', 'ftb-reveal-popup', 'ftb-idle-hint', 'ftb-hover-word']);
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+        acceptNode: (node) => {
+            if (!node.parentElement) {
+                return NodeFilter.FILTER_REJECT;
+            }
+            if (skipTags.has(node.parentElement.tagName)) {
+                return NodeFilter.FILTER_REJECT;
+            }
+            for (const cls of skipClasses) {
+                if (node.parentElement.classList.contains(cls)) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+            }
+            if (!node.nodeValue || !node.nodeValue.trim()) {
+                return NodeFilter.FILTER_REJECT;
+            }
+            return NodeFilter.FILTER_ACCEPT;
+        }
+    });
+
+    const nodes = [];
+    while (walker.nextNode()) {
+        nodes.push(walker.currentNode);
+    }
+
+    nodes.forEach((textNode) => {
+        const text = textNode.nodeValue;
+        const parts = text.split(/(\s+)/);
+        if (parts.length <= 1) {
+            return;
+        }
+
+        const frag = document.createDocumentFragment();
+        parts.forEach((part) => {
+            if (!part) {
+                return;
+            }
+            if (/\s+/.test(part)) {
+                frag.appendChild(document.createTextNode(part));
+            } else {
+                const span = document.createElement('span');
+                span.className = 'ftb-hover-word';
+                span.textContent = part;
+                frag.appendChild(span);
+            }
+        });
+
+        textNode.parentNode.replaceChild(frag, textNode);
+    });
 }

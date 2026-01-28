@@ -148,6 +148,7 @@ def on_show_question():
     if FieldsContext.entry_number > 0:
         web.eval("cleanUpTypedWords();")
         web.eval("prepareTypedWords(%d);" % FieldsContext.entry_number)
+    web.eval("if (typeof enableReadingHighlight === 'function') { setTimeout(() => enableReadingHighlight(true), 50); }")
 
 
 # --------------------------------- Handle answer ----------------------------------------

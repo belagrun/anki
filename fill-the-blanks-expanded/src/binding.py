@@ -167,6 +167,15 @@ input.st-wrong-rect, select.st-wrong-rect {
     margin: 0 2px;
     vertical-align: middle;
 }
+.ftb-hover-word {
+    border-radius: 3px;
+    padding: 0 2px;
+    display: inline-block;
+    transition: background 0.1s ease-in-out;
+}
+.ftb-hover-word:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
 
 </style>
 """
@@ -202,6 +211,8 @@ def wrapInitWeb(anki_mw, fn):
         anki_mw.reviewer.web.eval("""
                 %s
             """ % f.read())
+
+        anki_mw.reviewer.web.eval('enableReadingHighlight();')
 
         if not ConfigService.read(ConfigKey.FEEDBACK_ENABLED, bool):
             anki_mw.reviewer.web.eval('disableInstantFb();')
