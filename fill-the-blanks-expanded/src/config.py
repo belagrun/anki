@@ -21,6 +21,8 @@ class ConfigKey:
     IGNORE_CASE = 'feedback-ignore-case'
     IGNORE_ACCENTS = 'feedback-ignore-accents'
     ASIAN_CHARS = 'experimental-asian-chars'
+    IDLE_HINT_ENABLED = 'idle-hint-enabled'
+    IDLE_HINT_DELAY_MS = 'idle-hint-delay-ms'
 
 # ------------------------------ Service class --------------------------
 
@@ -30,6 +32,8 @@ DEFAULT_CONFIG = {
     ConfigKey.IGNORE_CASE: False,
     ConfigKey.IGNORE_ACCENTS: False,
     ConfigKey.ASIAN_CHARS: False,
+    ConfigKey.IDLE_HINT_ENABLED: True,
+    ConfigKey.IDLE_HINT_DELAY_MS: 10000,
 }
 
 class ConfigService:

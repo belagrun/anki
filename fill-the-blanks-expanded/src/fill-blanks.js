@@ -2,7 +2,11 @@ let ifEnabled = true;
 let shouldIgnoreCase = false;
 let shouldIgnoreAccents = false;
 let asianCharsEnabled = false;
+let idleHintEnabled = true;
+let idleHintDelayMs = 10000;
+const idleHintVisibleMs = 2000;
 var typedWords = [];
+const idleHintState = {};
 
 function checkFieldValue(reference, fieldIndex, event) {
     if (window.event.keyCode === 13) {
@@ -57,6 +61,7 @@ function checkFieldValue(reference, fieldIndex, event) {
     }
     field.data('lastValue', current);
     updateTypedValue(fieldIndex);
+    scheduleIdleHint(fieldIndex, reference);
 }
 
 function cleanUpView(field) {
@@ -118,6 +123,21 @@ function enableAsianChars() {
     asianCharsEnabled = true;
 }
 
+function enableIdleHint() {
+    idleHintEnabled = true;
+}
+
+function disableIdleHint() {
+    idleHintEnabled = false;
+    hideIdleHint();
+}
+
+function setIdleHintDelay(delayMs) {
+    if (typeof delayMs === 'number' && delayMs > 0) {
+        idleHintDelayMs = delayMs;
+    }
+}
+
 // ------------------------------------
 
 function focusOnFirst() {
@@ -133,11 +153,18 @@ function focusOnFirst() {
 function setUpFillBlankListener(expected, typeAnsIndex) {
     const eventType = (asianCharsEnabled) ? "input" : "keyup"
     const inputEl = document.getElementById(`typeans${typeAnsIndex}`);
-    inputEl.addEventListener(eventType,
-      (evt) => checkFieldValue(expected, typeAnsIndex, evt))
+    if (inputEl && inputEl.tagName === 'SELECT') {
+        inputEl.addEventListener('change',
+            (evt) => checkFieldValue(expected, typeAnsIndex, evt));
+    } else {
+        inputEl.addEventListener(eventType,
+          (evt) => checkFieldValue(expected, typeAnsIndex, evt))
+        inputEl.addEventListener('focus', () => scheduleIdleHint(typeAnsIndex, expected));
+        inputEl.addEventListener('blur', () => clearIdleHintTimer(typeAnsIndex));
+    }
 
     // add extra event for Enter key
-    if (eventType === "input") {
+    if (eventType === "input" && (!inputEl || inputEl.tagName !== 'SELECT')) {
         inputEl.addEventListener("keyup", (evt) => {
             if (window.event.keyCode === 13) {
                 pycmd("ans");
@@ -150,6 +177,117 @@ function setUpFillBlankListener(expected, typeAnsIndex) {
         evt.stopPropagation();
         showRevealPopup(inputEl, expected, typeAnsIndex);
     });
+}
+
+// --------------- Idle hint popup ------------------
+function getIdleHintPopup() {
+    let popup = document.getElementById('ftb-idle-hint');
+    if (popup) {
+        return popup;
+    }
+
+    popup = document.createElement('div');
+    popup.id = 'ftb-idle-hint';
+    popup.className = 'ftb-idle-hint';
+    popup.innerHTML = `
+        <div class="ftb-idle-card">
+            <div class="ftb-idle-title">Dica</div>
+            <div class="ftb-idle-text"></div>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    return popup;
+}
+
+function showIdleHint(inputEl, prefix) {
+    const popup = getIdleHintPopup();
+    const rect = inputEl.getBoundingClientRect();
+    const top = rect.bottom + window.scrollY + 8;
+    const left = rect.left + window.scrollX;
+
+    const textEl = popup.querySelector('.ftb-idle-text');
+    textEl.innerHTML = formatIdleHint(prefix || "");
+
+    popup.style.top = `${top}px`;
+    popup.style.left = `${left}px`;
+    popup.classList.add('ftb-idle-open');
+}
+
+function hideIdleHint() {
+    const popup = document.getElementById('ftb-idle-hint');
+    if (popup) {
+        popup.classList.remove('ftb-idle-open');
+    }
+}
+
+function clearIdleHintTimer(fieldIndex) {
+    const state = idleHintState[fieldIndex];
+    if (state && state.timerId) {
+        clearTimeout(state.timerId);
+        state.timerId = null;
+    }
+    if (state && state.hideTimerId) {
+        clearTimeout(state.hideTimerId);
+        state.hideTimerId = null;
+    }
+    hideIdleHint();
+}
+
+function scheduleIdleHint(fieldIndex, expected) {
+    if (!idleHintEnabled || !expected) {
+        return;
+    }
+
+    const inputEl = document.getElementById(`typeans${fieldIndex}`);
+    if (!inputEl || inputEl.tagName === 'SELECT') {
+        return;
+    }
+
+    if (!idleHintState[fieldIndex]) {
+        idleHintState[fieldIndex] = { timerId: null, hideTimerId: null };
+    }
+
+    const state = idleHintState[fieldIndex];
+    const current = (inputEl.value || "").trim();
+
+    if (state.timerId) {
+        clearTimeout(state.timerId);
+    }
+    if (state.hideTimerId) {
+        clearTimeout(state.hideTimerId);
+        state.hideTimerId = null;
+    }
+
+    if (current.length >= expected.length) {
+        hideIdleHint();
+        return;
+    }
+
+    state.timerId = setTimeout(() => {
+        const liveValue = (inputEl.value || "").trim();
+        if (liveValue.length >= expected.length) {
+            hideIdleHint();
+            return;
+        }
+
+        const nextCount = Math.min(expected.length, liveValue.length + 1);
+        const prefix = expected.substring(0, nextCount);
+        showIdleHint(inputEl, prefix);
+
+        state.hideTimerId = setTimeout(() => {
+            hideIdleHint();
+        }, idleHintVisibleMs);
+    }, idleHintDelayMs);
+}
+
+function formatIdleHint(text) {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\s/g, '<span class="ftb-idle-space"></span>');
 }
 
 // --------------- Reveal popup ------------------

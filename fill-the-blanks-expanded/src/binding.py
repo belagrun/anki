@@ -24,7 +24,7 @@ CWD = os.path.dirname(os.path.realpath(__file__))
 
 CSS_STYLE = """
 <style type="text/css">
-input.ftb {    
+input.ftb, select.ftb {    
     border-radius: 5px;
     border: 1px solid;
     min-width: 50px;
@@ -32,22 +32,22 @@ input.ftb {
     padding: 3px;    
     margin: 2px;
 }
-input.ftb-md {
+input.ftb-md, select.ftb-md {
     width: 150px;
 }
-input.st-incomplete {
+input.st-incomplete, select.st-incomplete {
     background-color: #FFFF77;
     color: #333;
 }
-input.st-error {
+input.st-error, select.st-error {
     background-color: #ff9999;
     color: #333;
 }
-input.st-ok {
+input.st-ok, select.st-ok {
     background-color: #99ff99;
     color: #333;
 }
-input.st-wrong-rect {
+input.st-wrong-rect, select.st-wrong-rect {
     background-color: #fff;
     color: #333;
     border: 2px solid #ff4d4d;
@@ -126,6 +126,48 @@ input.st-wrong-rect {
     box-shadow: 0 6px 16px rgba(255, 77, 77, 0.35);
 }
 
+.ftb-idle-hint {
+    position: absolute;
+    z-index: 9998;
+    display: none;
+    pointer-events: none;
+}
+.ftb-idle-hint.ftb-idle-open {
+    display: block;
+}
+.ftb-idle-card {
+    background: #1f1f1f;
+    color: #f5f5f5;
+    border-radius: 10px;
+    padding: 10px 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.08);
+    min-width: 160px;
+    max-width: 320px;
+}
+.ftb-idle-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #c2c2c2;
+    margin-bottom: 6px;
+}
+.ftb-idle-text {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.3;
+    word-break: break-word;
+}
+.ftb-idle-space {
+    display: inline-block;
+    min-width: 12px;
+    height: 1em;
+    background: #2ecc71;
+    border-radius: 4px;
+    margin: 0 2px;
+    vertical-align: middle;
+}
+
 </style>
 """
 
@@ -173,6 +215,14 @@ def wrapInitWeb(anki_mw, fn):
         if ConfigService.read(ConfigKey.ASIAN_CHARS, bool):
             print('Enabling experimental Asian Chars mode')
             anki_mw.reviewer.web.eval('enableAsianChars();')
+
+        if ConfigService.read(ConfigKey.IDLE_HINT_ENABLED, bool):
+            anki_mw.reviewer.web.eval('enableIdleHint();')
+        else:
+            anki_mw.reviewer.web.eval('disableIdleHint();')
+
+        idle_delay = ConfigService.read(ConfigKey.IDLE_HINT_DELAY_MS, int)
+        anki_mw.reviewer.web.eval('setIdleHintDelay(%d);' % idle_delay)
 
     return _initReviewerWeb
 

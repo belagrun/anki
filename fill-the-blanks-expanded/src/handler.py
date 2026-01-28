@@ -97,8 +97,7 @@ def _clear_correct_value_as_reviewer(text_beautiful_soup: str):
 
 def _create_fill_elements(idx: int, text: str, hint: str = "") -> BeautifulSoup:
     hidden = BeautifulSoup("""<input type="hidden" id="ansval%d" value="%s" />""" % (idx, text), "html.parser")
-    typein = BeautifulSoup("""<input type="text" id="typeans%d" placeholder="%s" class="ftb %s" />""" %
-                           (idx, hint, _get_length_class(text, hint)), "html.parser")
+    typein = _create_input_element(idx, text, hint)
     script = BeautifulSoup(
         """<script type="text/javascript">setUpFillBlankListener($('#ansval%d').val(), %d)</script>""" % (idx, idx),
         'html.parser')
@@ -111,6 +110,21 @@ def _create_fill_elements(idx: int, text: str, hint: str = "") -> BeautifulSoup:
     container.append(script)
 
     return container
+
+
+def _create_input_element(idx: int, text: str, hint: str) -> BeautifulSoup:
+    if hint and "/" in hint:
+        options = [part.strip() for part in hint.split("/") if part.strip()]
+        if options:
+            options_html = "".join(["<option value=\"\">--</option>"] +
+                                   ["<option value=\"%s\">%s</option>" % (opt, opt) for opt in options])
+            return BeautifulSoup(
+                """<select id="typeans%d" class="ftb ftb-select %s">%s</select>""" %
+                (idx, _get_length_class(text, hint), options_html),
+                "html.parser")
+
+    return BeautifulSoup("""<input type="text" id="typeans%d" placeholder="%s" class="ftb %s" />""" %
+                         (idx, hint, _get_length_class(text, hint)), "html.parser")
 
 
 def _get_length_class(text: str, hint: str):

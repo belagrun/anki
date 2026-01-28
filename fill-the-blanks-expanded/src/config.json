@@ -2,5 +2,7 @@
     "feedback-enabled": true,
     "feedback-ignore-case": false,
     "feedback-ignore-accents": false,
-    "experimental-asian-chars": false
+    "experimental-asian-chars": false,
+    "idle-hint-enabled": true,
+    "idle-hint-delay-ms": 10000
 }
