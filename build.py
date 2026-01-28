@@ -17,7 +17,7 @@ if __name__ == '__main__':
     target = None
 
     acceptedArgs = ('-source', '-dist', '-dev', '-clear')
-    existingAddons = ('schedule-priority', 'words-shuffler', 'anki-markdown', 'fill-the-blanks')
+    existingAddons = ('fill-the-blanks-expanded',)
 
     print('====================== Building RSS Addon =====================')
 
@@ -37,10 +37,13 @@ if __name__ == '__main__':
                 print('Already set to dist mode. Ignoring -dev')
             else:
                 mode = Const.ANKI
-                target = '/home/ricardo/.local/share/Anki2/addons21'  # os.environ['anki_addon']
+                appdata = os.environ.get('APPDATA')
+                if not appdata:
+                    raise EnvironmentError('APPDATA not found. Unable to resolve Anki addons path.')
+                target = os.path.join(appdata, 'Anki2', 'addons21')
         elif value == acceptedArgs[3]:  # clear
             mode = Const.CLEAR
-            target = './dist'  # os.environ['anki_addon']
+            target = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'dist')
 
     # -----------------------------------------------------------
 
@@ -67,34 +70,34 @@ if __name__ == '__main__':
     currentDir = os.path.dirname(os.path.realpath(__file__))
 
     if mode == Const.ZIP:
-        if os.path.exists('dist'):
+        if os.path.exists(target):
             print('Cleaning dist directory')
-            shutil.rmtree('dist/')
+            shutil.rmtree(target)
 
         print('Copying files')
-        shutil.copytree(currentDir + '/' + addon.replace('_', '-'), './dist',
+        shutil.copytree(os.path.join(currentDir, addon.replace('_', '-')), target,
                         ignore=shutil.ignore_patterns('tests', 'doc', '*_test*', '__pycache__'))
 
         print('Creating binary')
-        shutil.make_archive('dist/' + addon, format='zip',
-                            root_dir='dist/src')
+        shutil.make_archive(os.path.join(target, addon), format='zip',
+                            root_dir=os.path.join(target, 'src'))
 
     # copies to anki's addon folder - test integrated
     elif mode == Const.ANKI:
-        if os.path.exists(target + '/' + addon.replace('-', '_')):
-            print('Removing old files: {}'.format(target + '/' + addon))
-            shutil.rmtree(target + '/' + addon.replace('-', '_'))
+        targetAddonDir = os.path.join(target, addon.replace('-', '_'))
+        if os.path.exists(targetAddonDir):
+            print('Removing old files: {}'.format(targetAddonDir))
+            shutil.rmtree(targetAddonDir)
 
         print('Copying files to anki directory')
-        addonRoot = currentDir + '/' + addon
-        shutil.copytree(addonRoot + '/src', target + '/' + addon.replace('-', '_'),
+        addonRoot = os.path.join(currentDir, addon)
+        shutil.copytree(os.path.join(addonRoot, 'src'), targetAddonDir,
                         ignore=shutil.ignore_patterns('tests', 'doc', '*_test*', '__pycache__'))
 
     # Deletes from anki addons
     elif mode == Const.CLEAR:
-        if os.path.exists(target + '/' + addon):
-            print('Removing old files: {}'.format(target + '/' + addon))
-            shutil.rmtree(target + '/' + addon)
-            os.remove(target + '/' + addon + '.py')
+        if os.path.exists(target):
+            print('Removing dist directory: {}'.format(target))
+            shutil.rmtree(target)
         else:
-            print('Addon was not found on the target path: {}'.format(target + '/' + addon + '.py'))
+            print('Dist directory was not found: {}'.format(target))

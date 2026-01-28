@@ -63,6 +63,7 @@ function cleanUpView(field) {
     field.removeClass('st-ok');
     field.removeClass('st-incomplete');
     field.removeClass('st-error');
+    field.removeClass('st-wrong-rect');
 }
 
 function suggestNextCharacter(field, current, reference, event) {
@@ -131,15 +132,118 @@ function focusOnFirst() {
 
 function setUpFillBlankListener(expected, typeAnsIndex) {
     const eventType = (asianCharsEnabled) ? "input" : "keyup"
-    document.getElementById(`typeans${typeAnsIndex}`).addEventListener(eventType,
+    const inputEl = document.getElementById(`typeans${typeAnsIndex}`);
+    inputEl.addEventListener(eventType,
       (evt) => checkFieldValue(expected, typeAnsIndex, evt))
 
     // add extra event for Enter key
     if (eventType === "input") {
-        document.getElementById(`typeans${typeAnsIndex}`).addEventListener("keyup", (evt) => {
+        inputEl.addEventListener("keyup", (evt) => {
             if (window.event.keyCode === 13) {
                 pycmd("ans");
             }
         })
     }
+
+    inputEl.addEventListener("dblclick", (evt) => {
+        evt.preventDefault();
+        evt.stopPropagation();
+        showRevealPopup(inputEl, expected, typeAnsIndex);
+    });
+}
+
+// --------------- Reveal popup ------------------
+let ftbPopupState = {
+    field: null,
+    expected: "",
+    index: -1
+};
+
+function getRevealPopup() {
+    let popup = document.getElementById('ftb-reveal-popup');
+    if (popup) {
+        return popup;
+    }
+
+    popup = document.createElement('div');
+    popup.id = 'ftb-reveal-popup';
+    popup.className = 'ftb-reveal-popup';
+    popup.innerHTML = `
+        <div class="ftb-reveal-card">
+            <div class="ftb-reveal-title">Resposta</div>
+            <div class="ftb-reveal-answer"></div>
+            <div class="ftb-reveal-actions">
+                <button type="button" class="ftb-btn ftb-btn-ok" title="Acertei">✓</button>
+                <button type="button" class="ftb-btn ftb-btn-wrong" title="Errei">✕</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    popup.querySelector('.ftb-btn-ok').addEventListener('click', () => applyRevealChoice(true));
+    popup.querySelector('.ftb-btn-wrong').addEventListener('click', () => applyRevealChoice(false));
+
+    popup.addEventListener('click', (evt) => {
+        evt.stopPropagation();
+    });
+
+    document.addEventListener('click', () => hideRevealPopup());
+    document.addEventListener('keydown', (evt) => {
+        if (evt.key === 'Escape') {
+            hideRevealPopup();
+        }
+    });
+
+    return popup;
+}
+
+function showRevealPopup(inputEl, expected, typeAnsIndex) {
+    const popup = getRevealPopup();
+    const rect = inputEl.getBoundingClientRect();
+    const top = rect.bottom + window.scrollY + 8;
+    const left = rect.left + window.scrollX;
+
+    ftbPopupState = {
+        field: inputEl,
+        expected: expected,
+        index: typeAnsIndex
+    };
+
+    const answerEl = popup.querySelector('.ftb-reveal-answer');
+    answerEl.textContent = expected || "";
+
+    popup.style.top = `${top}px`;
+    popup.style.left = `${left}px`;
+    popup.classList.add('ftb-reveal-open');
+}
+
+function hideRevealPopup() {
+    const popup = document.getElementById('ftb-reveal-popup');
+    if (popup) {
+        popup.classList.remove('ftb-reveal-open');
+    }
+    ftbPopupState.field = null;
+}
+
+function applyRevealChoice(isCorrect) {
+    if (!ftbPopupState.field) {
+        hideRevealPopup();
+        return;
+    }
+
+    const field = $(ftbPopupState.field);
+    const expected = ftbPopupState.expected;
+    field.val(expected);
+    cleanUpView(field);
+
+    if (isCorrect) {
+        field.addClass('st-ok');
+    } else {
+        field.addClass('st-wrong-rect');
+    }
+
+    field.data('lastValue', expected);
+    updateTypedValue(ftbPopupState.index);
+    hideRevealPopup();
 }

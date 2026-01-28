@@ -2,7 +2,7 @@
 # Handles Configuration reading, saving and the integration with the config UI
 # Contains model, service and view controller for Config
 #
-# This files is part of fill-the-blanks addon
+# This files is part of fill-the-blanks expanded addon
 # @author ricardo saturnino
 # -------------------------------------------------------
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Class responsible for the processing
 #
-# This file is part of fill-the-blanks addon
+# This file is part of fill-the-blanks expanded addon
 # @author ricardo saturnino
 # -------------------------------------------------------
 

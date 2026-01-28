@@ -1,11 +1,11 @@
-# Fill the blanks - Improved type:cloze
+# Fill the blanks Expanded - Improved type:cloze
 
 > *TLDR;*  
 > This addons makes Anki handle cards of the kind *type:cloze* properly and adds support for multiple cloze parts on those cards
 
 With the addon applied:  
 
-![Fill the blanks](doc/review-inputs.png)
+![Fill the blanks Expanded](doc/review-inputs.png)
 
 ## Motivation
 
@@ -64,11 +64,35 @@ For details, refer to [Configuration](src/config.md)
 
 Especially for those who disable _instant feedback_, on "Show answer" the add-on also provides a feedback per field.
 
+## Compilação e Deploy
+
+### Pré-requisitos
+
+* Python 3 instalado e disponível no PATH
+
+### Gerar pacote (.zip)
+
+Na raiz do repositório, execute:
+
+```bash
+python build.py -source 1 -dist
+```
+
+O arquivo será criado em dist.
+
+### Instalar no Anki local (Windows)
+
+```bash
+python build.py -source 1 -dev
+```
+
+O add-on será copiado para %APPDATA%\Anki2\addons21.
+
 ## Bugs / Suggestions / more...
 
 Please, feel free to make suggestions and open issues about possible bugs found.  
 
-That and the source code are available on: [Github](https://github.com/ssricardo/anki-plugins/tree/master/fill-the-blanks)
+That and the source code are available on: [Github](https://github.com/ssricardo/anki-plugins/tree/master/fill-the-blanks-expanded)
 
 ## Updates
 
