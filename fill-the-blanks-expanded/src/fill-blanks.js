@@ -10,6 +10,7 @@ const idleHintState = {};
 let ctrlHintActive = false;
 let ctrlHintListenersReady = false;
 let activeTypeAnsIndex = null;
+let totalFields = 0;
 
 function checkFieldValue(reference, fieldIndex, event) {
     if (window.event.keyCode === 13) {
@@ -64,6 +65,7 @@ function checkFieldValue(reference, fieldIndex, event) {
     }
     field.data('lastValue', current);
     updateTypedValue(fieldIndex);
+    updateProgressIndicator();
     scheduleIdleHint(fieldIndex, reference);
 }
 
@@ -95,17 +97,74 @@ function isMacOS() {
 // ------------- Verification ---------------
 function cleanUpTypedWords() {
     typedWords = [];
+    totalFields = 0;
+    hideProgressIndicator();
 }
 
 function prepareTypedWords(numFields) {
     for (let i = 0; i < numFields; i++) {
         typedWords.push("");
     }
+    totalFields = numFields;
+    updateProgressIndicator();
 }
 
 function updateTypedValue(position) {
     let content = $("#typeans" + position).val().trim();
     typedWords[position] = content;
+}
+
+// --------------- Progress Indicator ------------------
+function getProgressIndicator() {
+    let indicator = document.getElementById('ftb-progress-indicator');
+    if (indicator) {
+        return indicator;
+    }
+
+    indicator = document.createElement('div');
+    indicator.id = 'ftb-progress-indicator';
+    indicator.className = 'ftb-progress-indicator';
+    document.body.appendChild(indicator);
+
+    return indicator;
+}
+
+function countAnsweredFields() {
+    let answered = 0;
+    for (let i = 0; i < totalFields; i++) {
+        const field = document.getElementById(`typeans${i}`);
+        if (field && (field.classList.contains('st-ok') || field.classList.contains('st-wrong-rect'))) {
+            answered++;
+        }
+    }
+    return answered;
+}
+
+function updateProgressIndicator() {
+    if (totalFields <= 0) {
+        hideProgressIndicator();
+        return;
+    }
+
+    const indicator = getProgressIndicator();
+    const answered = countAnsweredFields();
+    
+    indicator.textContent = `${answered}/${totalFields}`;
+    indicator.classList.add('ftb-progress-visible');
+    
+    if (answered === totalFields) {
+        indicator.classList.add('ftb-progress-complete');
+    } else {
+        indicator.classList.remove('ftb-progress-complete');
+    }
+}
+
+function hideProgressIndicator() {
+    const indicator = document.getElementById('ftb-progress-indicator');
+    if (indicator) {
+        indicator.classList.remove('ftb-progress-visible');
+        indicator.classList.remove('ftb-progress-complete');
+    }
 }
 
 // --------------- Options ------------------
@@ -467,6 +526,7 @@ function applyRevealChoice(isCorrect) {
 
     field.data('lastValue', expected);
     updateTypedValue(ftbPopupState.index);
+    updateProgressIndicator();
     hideRevealPopup();
 }
 

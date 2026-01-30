@@ -177,6 +177,29 @@ input.st-wrong-rect, select.st-wrong-rect {
     background: rgba(0, 0, 0, 0.08);
 }
 
+.ftb-progress-indicator {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 9999;
+    background: #1f1f1f;
+    color: #f5f5f5;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.08);
+    display: none;
+}
+.ftb-progress-indicator.ftb-progress-visible {
+    display: block;
+}
+.ftb-progress-indicator.ftb-progress-complete {
+    background: #2ecc71;
+    color: #0b3a1c;
+}
+
 </style>
 """
 
