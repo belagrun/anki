@@ -13,6 +13,111 @@ This fork contains enhancements and new features for the **Fill the Blanks Expan
 
 All new features are built upon the excellent foundation created by the original author.
 
+
+### Example
+```
+{{c1::Guten}} {{c2::Morgen}}, wie {{c3::geht}} es {{c4::dir}}?
+
+Das ist {{c5::sehr}} {{c6::schön}}!
+```
+
+<table cellspacing="10" cellpadding="0" style="border-collapse:separate;">
+  <tr>
+    <td style="vertical-align:top;">
+      <a href="https://raw.githubusercontent.com/belagrun/anki/refs/heads/main/images/2026-01-30_19-03-16.jpg" target="_blank" rel="noopener">
+        <img src="https://raw.githubusercontent.com/belagrun/anki/refs/heads/main/images/2026-01-30_19-03-16.jpg" width="260" alt="2026-01-30_19-03-16">
+      </a>
+    </td>
+    <td style="vertical-align:top;">
+      <a href="https://raw.githubusercontent.com/belagrun/anki/refs/heads/main/images/2026-01-30_19-03-24.jpg" target="_blank" rel="noopener">
+        <img src="https://raw.githubusercontent.com/belagrun/anki/refs/heads/main/images/2026-01-30_19-03-24.jpg" width="260" alt="2026-01-30_19-03-24">
+      </a>
+    </td>
+  </tr>
+
+  <tr>
+    <td style="vertical-align:top;">
+      <a href="https://raw.githubusercontent.com/belagrun/anki/refs/heads/main/images/2026-01-30_19-03-33.jpg" target="_blank" rel="noopener">
+        <img src="https://raw.githubusercontent.com/belagrun/anki/refs/heads/main/images/2026-01-30_19-03-33.jpg" width="260" alt="2026-01-30_19-03-33">
+      </a>
+    </td>
+    <td style="vertical-align:top;">
+      <a href="https://raw.githubusercontent.com/belagrun/anki/refs/heads/main/images/2026-01-30_19-03-47.jpg" target="_blank" rel="noopener">
+        <img src="https://raw.githubusercontent.com/belagrun/anki/refs/heads/main/images/2026-01-30_19-03-47.jpg" width="260" alt="2026-01-30_19-03-47">
+      </a>
+    </td>
+  </tr>
+
+  <tr>
+    <td style="vertical-align:top;">
+      <a href="https://raw.githubusercontent.com/belagrun/anki/refs/heads/main/images/2026-01-30_19-04-08.jpg" target="_blank" rel="noopener">
+        <img src="https://raw.githubusercontent.com/belagrun/anki/refs/heads/main/images/2026-01-30_19-04-08.jpg" width="260" alt="2026-01-30_19-04-08">
+      </a>
+    </td>
+    <td></td>
+  </tr>
+</table>
+
+## How it works?
+- **Instant Feedback**: As you type, each field changes color:
+  - 🟨 **Yellow**: incomplete or incorrect answer
+  - 🟩 **Green**: correct answer
+  - 🟥 **Red**: completely wrong answer
+
+- **Settings Used**:
+  - `feedback-enabled`: true (real-time visual feedback)
+  - `feedback-ignore-case`: false (distinguishes uppercase/lowercase)
+  - `feedback-ignore-accents`: true (ignores accents)
+
+
+### 📊 Progress Indicator
+- Visual counter showing answered/total fields (e.g., "2/5")
+- Located in the top-right corner
+- Turns green when all answers are complete
+
+### 💡 Smart Hints
+- **Double-click** any field to reveal the answer
+- **Ctrl+?** to get the next character hint
+- Configurable idle hint delays
+
+### 🌍 Language Support
+- Ignore case sensitivity option
+- Ignore accents/diacritics option
+- Asian characters support
+
+### 🎨 Dropdown Support
+Use hints with "/" separator to create dropdown menus:
+`{{c1::Paris::London/Paris/Berlin/Madrid}}`
+
+![2026-01-30_18-50-50](https://raw.githubusercontent.com/belagrun/anki/main/images/2026-01-30_18-50-50.jpg)
+
+
+
+## How to Use
+
+1. Create or edit a Cloze note type
+2. In the card template, replace `{{cloze:YourField}}` with `{{type:cloze:YourField}}`
+3. Add the filter: `{{type:cloze:YourField|fill-blanks}}`
+4. Create cloze deletions as usual: `{{c1::answer}}`
+5. Review your cards - each cloze becomes an input field!
+
+## Configuration
+
+Access settings via Tools → Add-ons → Fill the Blanks Expanded → Config
+
+- Enable/disable instant feedback
+- Case and accent sensitivity
+- Hint delays and behavior
+- And more...
+
+## Perfect For
+
+- 💻 Programming & code snippets
+- 🌐 Language learning
+- 📐 Math formulas
+- 🧬 Scientific terminology
+- 📝 Any content with multiple fill-in-the-blanks
+
 ## Original Project
 
 **Original Repository:** [https://github.com/ssricardo/anki-plugins](https://github.com/ssricardo/anki-plugins)
