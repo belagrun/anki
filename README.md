@@ -52,6 +52,16 @@ python build.py -source 1 -dist
 python build.py -source 1 -dev
 ```
 
+## Contact & Support
+
+🌐 **My Website:**  
+👉 [Isabela Grünevald](https://isabelagrunevald.vercel.app/)
+
+📧 **My E-mail:**  
+✉️ naveroute@gmail.com
+
+---
+
 ## License
 
 This fork maintains the same license as the original project.

@@ -103,8 +103,20 @@ That and the source code are available on: [Github](https://github.com/ssricardo
 Add-on developed by *ssricardo*.  
 Check out more of my add-ons on [Github Anki Plugins](https://github.com/ssricardo/anki-plugins)
 
+This fork with enhancements by **Isabela Grünevald**
+
 ### Buy me a coffee
 
 > If you feel like...
 
 https://www.buymeacoffee.com/ricardoss
+
+---
+
+## Contact & Support (Fork Maintainer)
+
+🌐 **My Website:**  
+👉 [Isabela Grünevald](https://isabelagrunevald.vercel.app/)
+
+📧 **My E-mail:**  
+✉️ naveroute@gmail.com
