@@ -32,6 +32,7 @@ class FieldsContext:
     currentFirst = None
     entry_number = 0
     answers: list = list()
+    current_ordinal: str = ""
 
 
 def addon_field_filter(field_text: str, field_name: str, filter_name: str, ctx) -> str:
@@ -42,6 +43,7 @@ def addon_field_filter(field_text: str, field_name: str, filter_name: str, ctx) 
     FieldsContext.answers.clear()
 
     rev_card = ctx.card()
+    FieldsContext.current_ordinal = str(rev_card.ord + 1)
     body = BeautifulSoup(field_text, 'html.parser')
     typein_fields = _traverse_entries(body, rev_card)
     FieldsContext.entry_number = typein_fields
@@ -54,11 +56,17 @@ def addon_field_filter(field_text: str, field_name: str, filter_name: str, ctx) 
 
 def _traverse_entries(body, rev_card) -> int:
     typein_fields = 0
-    for idx, span in enumerate(body.find_all('span', 'cloze')):
+    matching_spans = []
+    
+    # First, collect all matching spans
+    for span in body.find_all('span', 'cloze'):
         tag_ordinal = span['data-ordinal'] if span.has_attr('data-ordinal') else "-1"
         if tag_ordinal != str(rev_card.ord + 1):
             continue
-
+        matching_spans.append((span, tag_ordinal))
+    
+    # Then replace them with sequential indices
+    for idx, (span, tag_ordinal) in enumerate(matching_spans):
         cloze_value = span['data-cloze'] if span.has_attr('data-cloze') else span.text
         remaining_text = span.text
         span.replace_with(_apply_typein_value(cloze_value, remaining_text, idx, tag_ordinal))
@@ -163,7 +171,13 @@ def handle_answer(answer: str, card, phase: str) -> str:
 
     soup = BeautifulSoup(answer, 'html.parser')
     field_ctx = None if FieldsContext.entry_number == 0 else FieldsContext
-    span_list = soup.find_all('span', 'cloze')
+    
+    # Filter only cloze spans matching the current ordinal
+    all_cloze_spans = soup.find_all('span', 'cloze')
+    span_list = [
+        span for span in all_cloze_spans 
+        if span.get('data-ordinal') == field_ctx.current_ordinal
+    ] if field_ctx else []
 
     if not field_ctx or (len(span_list) != len(field_ctx.answers)):
         return answer
@@ -206,4 +220,5 @@ def _onFillBlankAnswer(val) -> None:
 def cleanup_context(reviewer, card, ease):
     FieldsContext.entry_number = 0
     FieldsContext.answers.clear()
+    FieldsContext.current_ordinal = ""
 

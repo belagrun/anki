@@ -79,6 +79,7 @@ function buildDuplicateGroups(numFields) {
   ordinalByField = {};
   duplicateOrdinalGroups = {};
 
+  // First pass: collect expected values and ordinals
   for (let i = 0; i < numFields; i++) {
     const expectedEl = document.getElementById(`ansval${i}`);
     const expected = expectedEl ? expectedEl.value || "" : "";
@@ -90,10 +91,14 @@ function buildDuplicateGroups(numFields) {
       continue;
     }
     ordinalByField[i] = ordinal;
-    if (!duplicateOrdinalGroups[ordinal]) {
-      duplicateOrdinalGroups[ordinal] = [];
+    
+    // Group by ordinal + expected value (case-sensitive)
+    // Only fields with same ordinal AND same expected value are duplicates
+    const groupKey = `${ordinal}::${expected}`;
+    if (!duplicateOrdinalGroups[groupKey]) {
+      duplicateOrdinalGroups[groupKey] = [];
     }
-    duplicateOrdinalGroups[ordinal].push(i);
+    duplicateOrdinalGroups[groupKey].push(i);
   }
 }
 
@@ -103,11 +108,24 @@ function clearDuplicateIndicators() {
 
 function renderDuplicateIndicators() {
   clearDuplicateIndicators();
-  Object.keys(duplicateOrdinalGroups).forEach((ordinal) => {
-    const indices = duplicateOrdinalGroups[ordinal] || [];
+  
+  // Assign incremental numbers to groups with duplicates
+  let groupNumber = 1;
+  const groupKeyToNumber = {};
+  
+  Object.keys(duplicateOrdinalGroups).forEach((groupKey) => {
+    const indices = duplicateOrdinalGroups[groupKey] || [];
+    if (indices.length > 1) {
+      groupKeyToNumber[groupKey] = groupNumber++;
+    }
+  });
+  
+  Object.keys(duplicateOrdinalGroups).forEach((groupKey) => {
+    const indices = duplicateOrdinalGroups[groupKey] || [];
     if (indices.length <= 1) {
       return;
     }
+    const displayNumber = groupKeyToNumber[groupKey];
     indices.forEach((idx) => {
       const inputEl = document.getElementById(`typeans${idx}`);
       if (!inputEl) {
@@ -115,8 +133,8 @@ function renderDuplicateIndicators() {
       }
       const indicator = document.createElement("span");
       indicator.className = "ftb-dup-indicator";
-      indicator.textContent = String(ordinal);
-      indicator.setAttribute("data-dup-ordinal", String(ordinal));
+      indicator.textContent = String(displayNumber);
+      indicator.setAttribute("data-dup-ordinal", String(groupKey));
       inputEl.insertAdjacentElement("afterend", indicator);
     });
   });
@@ -169,7 +187,10 @@ function autoFillDuplicateFields(sourceIndex, typedValue) {
     return;
   }
 
-  const indices = duplicateOrdinalGroups[ordinal] || [];
+  // Use the same groupKey as in buildDuplicateGroups
+  const expected = expectedValues[sourceIndex] || "";
+  const groupKey = `${ordinal}::${expected}`;
+  const indices = duplicateOrdinalGroups[groupKey] || [];
   if (indices.length <= 1) {
     return;
   }

@@ -104,6 +104,7 @@ A value in the back field upd field upd
 
     FieldsContext.entry_number = 1
     FieldsContext.answers = ["double"]
+    FieldsContext.current_ordinal = "3"
     res = handle_answer(content, TestCard(), "reviewAnswer")
 
     assert '<span class="cloze st-ok">double</span>' in res
@@ -132,10 +133,77 @@ A value in the back field upd field upd
 
     FieldsContext.entry_number = 1
     FieldsContext.answers = ["something-else"]
+    FieldsContext.current_ordinal = "3"
     res = handle_answer(content, TestCard(), "reviewAnswer")
 
     assert "st-expected" in res
     assert "st-error" in res
+
+
+def test_multiple_cloze_same_ordinal_different_values():
+    """
+    Bug fix: Multiple clozes with same ordinal (c2) but different values (C, P, p)
+    should show distinct answers, not repeat the first one.
+    """
+    # Question phase - simulate the filter
+    question_data = """
+{{c2::C}} &lt;dir&gt; → Extrair para um diretório específico<br>
+<span class="cloze" data-cloze="C" data-ordinal="2">[...]</span> &lt;dir&gt; → Extrair para um diretório específico<br>
+<span class="cloze" data-cloze="P" data-ordinal="2">[...]</span> → Preservar caminhos absolutos<br>
+<span class="cloze" data-cloze="p" data-ordinal="2">[...]</span> → Preservar permissões de arquivos
+    """
+    
+    res = addon_field_filter(question_data, "Text", "fill-blanks", FilterContext(2))
+    
+    # Verify 3 separate input fields were created with different values
+    assert 'value="C"' in res
+    assert 'value="P"' in res
+    assert 'value="p"' in res
+    assert 'typeans0' in res
+    assert 'typeans1' in res
+    assert 'typeans2' in res
+    
+    # Answer phase - simulate showing the answer
+    answer_data = """
+<span class="cloze" data-ordinal="2">C</span> &lt;dir&gt; → Extrair para um diretório específico<br>
+<span class="cloze" data-ordinal="2">P</span> → Preservar caminhos absolutos<br>
+<span class="cloze" data-ordinal="2">p</span> → Preservar permissões de arquivos
+    """
+    
+    FieldsContext.entry_number = 3
+    FieldsContext.answers = ["C", "P", "p"]
+    FieldsContext.current_ordinal = "2"
+    
+    answer_res = handle_answer(answer_data, TestCard(), "reviewAnswer")
+    
+    # All three should be marked as correct with their own values
+    assert answer_res.count('st-ok') == 3
+    assert '>C</span>' in answer_res
+    assert '>P</span>' in answer_res
+    assert '>p</span>' in answer_res
+
+
+def test_multiple_cloze_same_ordinal_mixed_results():
+    """
+    Test with same ordinal but some correct and some wrong answers.
+    """
+    answer_data = """
+<span class="cloze" data-ordinal="2">C</span> - option 1<br>
+<span class="cloze" data-ordinal="2">P</span> - option 2<br>
+<span class="cloze" data-ordinal="2">p</span> - option 3
+    """
+    
+    FieldsContext.entry_number = 3
+    FieldsContext.answers = ["C", "X", "p"]  # Second answer is wrong
+    FieldsContext.current_ordinal = "2"
+    
+    answer_res = handle_answer(answer_data, TestCard(), "reviewAnswer")
+    
+    # First and third correct, second wrong
+    assert answer_res.count('st-ok') == 2
+    assert answer_res.count('st-error') == 1
+    assert answer_res.count('st-expected') == 1
+
 
 # --------------------------------- From previous version - tests --------------------------------------------
 
