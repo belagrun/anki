@@ -13,8 +13,8 @@ This fork contains enhancements and new features for the **Fill the Blanks Expan
 
 All new features are built upon the excellent foundation created by the original author.
 
-
 ### Example
+
 ```
 {{c1::Guten}} {{c2::Morgen}}, wie {{c3::geht}} es {{c4::dir}}?
 
@@ -59,6 +59,7 @@ Das ist {{c5::sehr}} {{c6::schön}}!
 </table>
 
 ## How it works?
+
 - **Instant Feedback**: As you type, each field changes color:
   - 🟨 **Yellow**: incomplete or incorrect answer
   - 🟩 **Green**: correct answer
@@ -69,29 +70,44 @@ Das ist {{c5::sehr}} {{c6::schön}}!
   - `feedback-ignore-case`: false (distinguishes uppercase/lowercase)
   - `feedback-ignore-accents`: true (ignores accents)
 
-
 ### 📊 Progress Indicator
+
 - Visual counter showing answered/total fields (e.g., "2/5")
 - Located in the top-right corner
 - Turns green when all answers are complete
 
 ### 💡 Smart Hints
+
 - **Double-click** any field to reveal the answer
 - **Ctrl+?** to get the next character hint
 - Configurable idle hint delays
 
 ### 🌍 Language Support
+
 - Ignore case sensitivity option
 - Ignore accents/diacritics option
 - Asian characters support
 
 ### 🎨 Dropdown Support
+
 Use hints with "/" separator to create dropdown menus:
 `{{c1::Paris::London/Paris/Berlin/Madrid}}`
 
 ![2026-01-30_18-50-50](https://raw.githubusercontent.com/belagrun/anki/main/images/2026-01-30_18-50-50.jpg)
 
+### 🔁 Duplicate Cloze Autofill
 
+When the same ordinal appears more than once (e.g., `c1` repeated), typing in one field instantly mirrors the input in the other(s). A small superscript number appears to the right of each repeated cloze to indicate the shared ordinal.
+
+Example 1:
+`{{c1::Paris}} is the capital of France. {{c1::Paris}} is in Europe.`
+Example 2:
+`{{c1::Paris::London/Paris/Rio de Janeiro}} is the capital of France. {{c1::Paris::London/Paris/Rio de Janeiro}} is in Europe.`
+
+Notes:
+
+- Autofill only happens for the same ordinal (e.g., `c1` with `c1`).
+- Different ordinals (e.g., `c1` and `c2`) are not linked.
 
 ## How to Use
 

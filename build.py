@@ -31,7 +31,7 @@ if __name__ == '__main__':
             addonIndex = int(sys.argv[index + 1])
         elif value == acceptedArgs[1]:
             mode = Const.ZIP  # dist
-            target = '/dist'
+            target = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'dist')
         elif value == acceptedArgs[2]:
             if mode:
                 print('Already set to dist mode. Ignoring -dev')
@@ -79,8 +79,12 @@ if __name__ == '__main__':
                         ignore=shutil.ignore_patterns('tests', 'doc', '*_test*', '__pycache__'))
 
         print('Creating binary')
-        shutil.make_archive(os.path.join(target, addon), format='zip',
-                            root_dir=os.path.join(target, 'src'))
+        archive_path = shutil.make_archive(os.path.join(target, addon), format='zip',
+                                           root_dir=os.path.join(target, 'src'))
+        ankiaddon_path = os.path.splitext(archive_path)[0] + '.ankiaddon'
+        if os.path.exists(ankiaddon_path):
+            os.remove(ankiaddon_path)
+        os.replace(archive_path, ankiaddon_path)
 
     # copies to anki's addon folder - test integrated
     elif mode == Const.ANKI:
