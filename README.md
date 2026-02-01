@@ -54,9 +54,24 @@ Das ist {{c5::sehr}} {{c6::schön}}!
         <img src="https://raw.githubusercontent.com/belagrun/anki/refs/heads/main/images/2026-01-30_19-04-08.jpg" width="260" alt="2026-01-30_19-04-08">
       </a>
     </td>
+
+    <td style="vertical-align:top;">
+      <a href="https://raw.githubusercontent.com/belagrun/anki/refs/heads/main/images/2026-01-31_21-24-50.jpg" target="_blank" rel="noopener">
+        <img src="https://raw.githubusercontent.com/belagrun/anki/refs/heads/main/images/2026-01-31_21-24-50.jpg" width="260" alt="2026-01-31_21-24-50">
+      </a>
+    </td>
+  </tr>
+
+  <tr>
+    <td style="vertical-align:top;">
+      <a href="https://raw.githubusercontent.com/belagrun/anki/refs/heads/main/images/2026-01-31_21-29-45.jpg" target="_blank" rel="noopener">
+        <img src="https://raw.githubusercontent.com/belagrun/anki/refs/heads/main/images/2026-01-31_21-29-45.jpg" width="260" alt="2026-01-31_21-29-45">
+      </a>
+    </td>
     <td></td>
   </tr>
 </table>
+
 
 ## How it works?
 
