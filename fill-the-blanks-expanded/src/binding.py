@@ -32,6 +32,13 @@ input.ftb, select.ftb {
     padding: 3px;    
     margin: 2px;
 }
+span.ftb-dup-indicator {
+    font-size: 0.6em;
+    vertical-align: super;
+    margin-left: 2px;
+    line-height: 1;
+    opacity: 0.7;
+}
 input.ftb-md, select.ftb-md {
     width: 150px;
 }

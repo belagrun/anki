@@ -61,17 +61,17 @@ def _traverse_entries(body, rev_card) -> int:
 
         cloze_value = span['data-cloze'] if span.has_attr('data-cloze') else span.text
         remaining_text = span.text
-        span.replace_with(_apply_typein_value(cloze_value, remaining_text, idx))
+        span.replace_with(_apply_typein_value(cloze_value, remaining_text, idx, tag_ordinal))
         typein_fields += 1
     return typein_fields
 
 
-def _apply_typein_value(cloze_value: str, extra_text: Optional[str], field_idx: int) -> BeautifulSoup:
+def _apply_typein_value(cloze_value: str, extra_text: Optional[str], field_idx: int, ordinal: str) -> BeautifulSoup:
     clean_value = _clear_correct_value_as_reviewer(cloze_value)
     has_hint = extra_text and extra_text != cloze_value and extra_text != "[...]"
     hint = extra_text.removeprefix("[").removesuffix("]") if has_hint else ""
 
-    elements = _create_fill_elements(field_idx, clean_value, hint)
+    elements = _create_fill_elements(field_idx, clean_value, hint, ordinal)
 
     return elements
 
@@ -95,9 +95,9 @@ def _clear_correct_value_as_reviewer(text_beautiful_soup: str):
     return cor
 
 
-def _create_fill_elements(idx: int, text: str, hint: str = "") -> BeautifulSoup:
+def _create_fill_elements(idx: int, text: str, hint: str = "", ordinal: str = "") -> BeautifulSoup:
     hidden = BeautifulSoup("""<input type="hidden" id="ansval%d" value="%s" />""" % (idx, text), "html.parser")
-    typein = _create_input_element(idx, text, hint)
+    typein = _create_input_element(idx, text, hint, ordinal)
     script = BeautifulSoup(
         """<script type="text/javascript">setUpFillBlankListener($('#ansval%d').val(), %d)</script>""" % (idx, idx),
         'html.parser')
@@ -112,19 +112,23 @@ def _create_fill_elements(idx: int, text: str, hint: str = "") -> BeautifulSoup:
     return container
 
 
-def _create_input_element(idx: int, text: str, hint: str) -> BeautifulSoup:
+def _create_input_element(idx: int, text: str, hint: str, ordinal: str) -> BeautifulSoup:
     if hint and "/" in hint:
         options = [part.strip() for part in hint.split("/") if part.strip()]
         if options:
             options_html = "".join(["<option value=\"\">--</option>"] +
                                    ["<option value=\"%s\">%s</option>" % (opt, opt) for opt in options])
-            return BeautifulSoup(
+            element = BeautifulSoup(
                 """<select id="typeans%d" class="ftb ftb-select %s">%s</select>""" %
                 (idx, _get_length_class(text, hint), options_html),
                 "html.parser")
+            element.select_one('select')['data-ordinal'] = ordinal
+            return element
 
-    return BeautifulSoup("""<input type="text" id="typeans%d" placeholder="%s" class="ftb %s" />""" %
+    element = BeautifulSoup("""<input type="text" id="typeans%d" placeholder="%s" class="ftb %s" />""" %
                          (idx, hint, _get_length_class(text, hint)), "html.parser")
+    element.select_one('input')['data-ordinal'] = ordinal
+    return element
 
 
 def _get_length_class(text: str, hint: str):

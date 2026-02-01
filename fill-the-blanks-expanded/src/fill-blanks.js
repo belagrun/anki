@@ -11,6 +11,9 @@ let ctrlHintActive = false;
 let ctrlHintListenersReady = false;
 let activeTypeAnsIndex = null;
 let totalFields = 0;
+let expectedValues = [];
+let ordinalByField = {};
+let duplicateOrdinalGroups = {};
 
 function checkFieldValue(reference, fieldIndex, event) {
     if (window.event.keyCode === 13) {
@@ -25,6 +28,7 @@ function checkFieldValue(reference, fieldIndex, event) {
     }
 
     let current = field.val();
+    let rawCurrent = current;
     // console.log('Cur: ' + current + '; starts? ' + reference.startsWith(current));
     let previous = field.data('lastValue');
 
@@ -41,6 +45,7 @@ function checkFieldValue(reference, fieldIndex, event) {
 
     if (current == '' ) {
         field.data('lastValue', '');
+        autoFillDuplicateFields(fieldIndex, (rawCurrent || ""));
         return;
     }
 
@@ -66,7 +71,120 @@ function checkFieldValue(reference, fieldIndex, event) {
     field.data('lastValue', current);
     updateTypedValue(fieldIndex);
     updateProgressIndicator();
+    autoFillDuplicateFields(fieldIndex, (rawCurrent || ""));
     scheduleIdleHint(fieldIndex, reference);
+}
+function buildDuplicateGroups(numFields) {
+    expectedValues = [];
+    ordinalByField = {};
+    duplicateOrdinalGroups = {};
+
+    for (let i = 0; i < numFields; i++) {
+        const expectedEl = document.getElementById(`ansval${i}`);
+        const expected = expectedEl ? (expectedEl.value || "") : "";
+        expectedValues[i] = expected;
+
+        const inputEl = document.getElementById(`typeans${i}`);
+        const ordinal = inputEl ? inputEl.getAttribute('data-ordinal') : null;
+        if (!ordinal) {
+            continue;
+        }
+        ordinalByField[i] = ordinal;
+        if (!duplicateOrdinalGroups[ordinal]) {
+            duplicateOrdinalGroups[ordinal] = [];
+        }
+        duplicateOrdinalGroups[ordinal].push(i);
+    }
+}
+
+function clearDuplicateIndicators() {
+    document.querySelectorAll('.ftb-dup-indicator').forEach((el) => el.remove());
+}
+
+function renderDuplicateIndicators() {
+    clearDuplicateIndicators();
+    Object.keys(duplicateOrdinalGroups).forEach((ordinal) => {
+        const indices = duplicateOrdinalGroups[ordinal] || [];
+        if (indices.length <= 1) {
+            return;
+        }
+        indices.forEach((idx) => {
+            const inputEl = document.getElementById(`typeans${idx}`);
+            if (!inputEl) {
+                return;
+            }
+            const indicator = document.createElement('span');
+            indicator.className = 'ftb-dup-indicator';
+            indicator.textContent = String(ordinal);
+            indicator.setAttribute('data-dup-ordinal', String(ordinal));
+            inputEl.insertAdjacentElement('afterend', indicator);
+        });
+    });
+}
+
+function updateFieldVisual(reference, fieldIndex, value) {
+    let field = $('#typeans' + fieldIndex);
+    if (!field || field.length === 0) {
+        return;
+    }
+
+    cleanUpView(field);
+    let current = (value || "").trim();
+    if (current === '') {
+        field.data('lastValue', '');
+        updateTypedValue(fieldIndex);
+        updateProgressIndicator();
+        return;
+    }
+
+    let cmpCurrent = current;
+    let cmpReference = reference;
+    if (shouldIgnoreCase) {
+        cmpCurrent = cmpCurrent.toLowerCase();
+        cmpReference = cmpReference.toLowerCase();
+    }
+    if (shouldIgnoreAccents) {
+        cmpCurrent = cmpCurrent.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        cmpReference = cmpReference.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    if (cmpCurrent == cmpReference) {
+        field.addClass('st-ok');
+    } else if (cmpReference.startsWith(cmpCurrent)) {
+        field.addClass('st-incomplete');
+    } else {
+        field.addClass('st-error');
+    }
+
+    field.data('lastValue', cmpCurrent);
+    updateTypedValue(fieldIndex);
+    updateProgressIndicator();
+}
+
+function autoFillDuplicateFields(sourceIndex, typedValue) {
+    const ordinal = ordinalByField[sourceIndex];
+    if (!ordinal) {
+        return;
+    }
+
+    const indices = duplicateOrdinalGroups[ordinal] || [];
+    if (indices.length <= 1) {
+        return;
+    }
+
+    indices.forEach((idx) => {
+        if (idx === sourceIndex) {
+            return;
+        }
+        const inputEl = document.getElementById(`typeans${idx}`);
+        if (!inputEl) {
+            return;
+        }
+        if (inputEl.value !== typedValue) {
+            inputEl.value = typedValue;
+        }
+        updateFieldVisual(expectedValues[idx] || "", idx, typedValue);
+    });
 }
 
 function cleanUpView(field) {
@@ -99,6 +217,10 @@ function cleanUpTypedWords() {
     typedWords = [];
     totalFields = 0;
     hideProgressIndicator();
+    expectedValues = [];
+    ordinalByField = {};
+    duplicateOrdinalGroups = {};
+    clearDuplicateIndicators();
 }
 
 function prepareTypedWords(numFields) {
@@ -107,6 +229,8 @@ function prepareTypedWords(numFields) {
     }
     totalFields = numFields;
     updateProgressIndicator();
+    buildDuplicateGroups(numFields);
+    renderDuplicateIndicators();
 }
 
 function updateTypedValue(position) {
@@ -527,6 +651,9 @@ function applyRevealChoice(isCorrect) {
     field.data('lastValue', expected);
     updateTypedValue(ftbPopupState.index);
     updateProgressIndicator();
+    if (isCorrect) {
+        autoFillDuplicateFields(ftbPopupState.index, (expected || "").trim());
+    }
     hideRevealPopup();
 }
 
