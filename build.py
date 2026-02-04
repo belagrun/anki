@@ -17,7 +17,7 @@ if __name__ == '__main__':
     target = None
 
     acceptedArgs = ('-source', '-dist', '-dev', '-clear')
-    existingAddons = ('fill-the-blanks-expanded',)
+    existingAddons = ('fill-the-blanks-expanded', 'note-type-export')
 
     print('====================== Building RSS Addon =====================')
 
