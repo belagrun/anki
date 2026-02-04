@@ -1,10 +1,19 @@
-# Anki Plugins - Fill the Blanks Expanded (Fork)
+# Anki Plugins
 
-This repository is a **fork** of the original [Anki Plugins](https://github.com/ssricardo/anki-plugins) project by **ssricardo**.
+This repository is a **fork** of the original [Anki Plugins](https://github.com/ssricardo/anki-plugins) project by **ssricardo**, with additional custom plugins.
 
-## About This Fork
+## Plugins
 
-This fork contains enhancements and new features for the **Fill the Blanks Expanded** add-on, including:
+| Plugin | Description |
+|--------|-------------|
+| [Fill the Blanks Expanded](#fill-the-blanks-expanded) | Enhanced cloze deletions with input fields |
+| [Note Type Export](#note-type-export) | Export and import note types as JSON |
+
+---
+
+## Fill the Blanks Expanded
+
+Enhanced cloze deletion add-on with input fields and instant feedback, including:
 
 - ✨ Progress indicator showing answered/total fields
 - 🎯 Enhanced instant feedback
@@ -174,18 +183,85 @@ Your support helps maintain and improve these tools for the entire Anki communit
 
 ## Project Structure
 
-- **fill-the-blanks-expanded/** - Main add-on source code
+- **fill-the-blanks-expanded/** - Enhanced cloze deletion add-on
   - See [fill-the-blanks-expanded/README.md](fill-the-blanks-expanded/README.md) for detailed documentation
+- **note-type-export/** - Note type export/import add-on
+  - See [note-type-export/README.md](note-type-export/README.md) for detailed documentation
 
 ## Building
 
 ```bash
-# Generate distribution package (.zip)
+# Generate distribution package (.ankiaddon)
+# Fill the Blanks Expanded
 python build.py -source 1 -dist
 
+# Note Type Export
+python build.py -source 2 -dist
+
 # Install to local Anki (Windows)
-python build.py -source 1 -dev
+python build.py -source 1 -dev  # Fill the Blanks
+python build.py -source 2 -dev  # Note Type Export
 ```
+
+---
+
+## Note Type Export
+
+Export and import Anki note types (models) as portable JSON files.
+
+### Features
+
+- 📤 **Export Note Types**: Save your note types to a portable JSON file
+- 📥 **Import Note Types**: Load note types from JSON files into your collection
+- ⚠️ **Smart Conflict Resolution**: Choose how to handle name conflicts:
+  - Ask for each conflict
+  - Auto-rename with "(imported)" suffix  
+  - Skip conflicting note types
+  - Overwrite existing (if not in use)
+- ✅ **Selective Export/Import**: Choose exactly which note types to export or import
+- 📋 **Apply to All**: Handle multiple conflicts with a single decision
+
+### Usage
+
+1. **Export**: Go to **Tools → Export Note Types...**
+   - Select note types to export
+   - Choose save location
+   - Get a portable `.json` file
+
+2. **Import**: Go to **Tools → Import Note Types...**
+   - Select a `.json` file
+   - Preview note types with conflict indicators (⚠️)
+   - Configure conflict resolution
+   - Import selected note types
+
+### JSON Format
+
+```json
+{
+  "format_version": "1.0",
+  "metadata": {
+    "exported_at": "2026-02-04T12:00:00Z",
+    "anki_version": "24.11",
+    "count": 2
+  },
+  "note_types": [
+    {
+      "name": "Basic",
+      "type": 0,
+      "css": ".card { font-family: arial; }",
+      "fields": [...],
+      "templates": [...]
+    }
+  ]
+}
+```
+
+### Limitations (v1.0)
+
+- Media files in templates/CSS are not exported
+- Deck associations are not preserved
+
+---
 
 ## Contact & Support
 
